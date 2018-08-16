@@ -157,7 +157,7 @@
                     ]
                 });
 
-                $('#all-table').DataTable({
+                var alltable = $('#all-table').DataTable({
                     dom: 'lfrtip',
                     processing: false,
                     serverSide: true,
@@ -181,6 +181,18 @@
                         {data: 'created_at', name: 'created_at', sortable:false},
                     ]
                 });
+
+                $('#all-table tbody').on('click', 'tr', function () {
+                    var rowdata = alltable.row(this).data();
+                    var userid = rowdata['userid'];
+                    var domainUrl = document.location.origin;
+                    console.log(userid)
+                    if(rowdata['location'] != "Unknown")
+                    {
+                        var newurl = domainUrl + "/admin/alert/curalert/location/" + userid;
+                        $(location).attr('href',newurl);
+                    }
+                } );
             });
         });
     </script>

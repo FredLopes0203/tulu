@@ -16,6 +16,8 @@ Route::group(['middleware' => ['api','cors'], 'namespace' => 'Backend\Api'], fun
         Route::post('forgotpassword', 'ApiuserController@sendResetPWDEmail');
         Route::post('resetcode', 'ApiuserController@ConfirmResetPWDcode');
         Route::post('resetpwd', 'ApiuserController@ResetPwd');
+
+        Route::post('logout', 'ApiuserController@logout');
     });
 
     Route::group(['prefix' => 'profile'], function () {

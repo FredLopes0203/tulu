@@ -81,11 +81,44 @@ class ApiuserController extends Controller
             return response()->json(['result' => false, 'message' => 'Your email address is not confirmed yet.', 'code' => 'notconfirmed']);
         }
 
+        $fcm_token = "";
+        if($user->isadmin == 0)
+        {
+            $fcmtoken = $request->get('fcmtoken');
+
+            if($fcmtoken != "" && $fcmtoken != null)
+            {
+                $fcm_token = $fcmtoken;
+            }
+        }
+
+        $user->fcmtoken = $fcm_token;
+        $user->save();
+
         return response()->json([
                 'result' => true,
                 'token' => $token,
                 'userInfo' => $user
             ]);
+    }
+
+    public function logout(Request $request)
+    {
+        $input = $request->all();
+        $token = $input['token'];
+
+        try{
+            $user = JWTAuth::toUser($token);
+        }
+        catch (JWTException $e)
+        {
+            return response()->json(['result' => false, 'message' => $token.'Incorrect Credential Info.']);
+        }
+
+        $user->fcmtoken = "";
+        $user->save();
+
+        return response()->json(['result' => true, 'userInfo' => $user]);
     }
 
     public function register(Request $request)
@@ -94,6 +127,18 @@ class ApiuserController extends Controller
         $password = $input['password'];
         $password = Hash::make($password);
         $userType = $input['usertype'];
+
+        $fcm_token = "";
+
+        if($userType == 0)
+        {
+            $fcmtoken = $input['fcmtoken'];
+
+            if($fcmtoken != "" && $fcmtoken != null)
+            {
+                $fcm_token = $fcmtoken;
+            }
+        }
 
         $isAdmin = 0;
         if($userType == 1)
@@ -113,7 +158,8 @@ class ApiuserController extends Controller
                 'status' => 1,
                 'confirmation_code' => md5(uniqid(mt_rand(), true)),
                 'confirmed' => 0,
-                'verificationcode' => $this->generateRndString()
+                'verificationcode' => $this->generateRndString(),
+                'fcmtoken' => $fcm_token
             ]);
 
             if($userType == 1)
@@ -163,6 +209,8 @@ class ApiuserController extends Controller
         $input = $request->all();
         $token = $input['token'];
 
+        $fcmtoken = $input['fcmtoken'];
+
         try{
             $user = JWTAuth::toUser($token);
         }
@@ -170,6 +218,18 @@ class ApiuserController extends Controller
         {
             return response()->json(['result' => false, 'message' => 'Incorrect Credential Info.']);
         }
+
+        $fcm_token = "";
+        if($user->isadmin == 0)
+        {
+            if($fcmtoken != "" && $fcmtoken != null)
+            {
+                $fcm_token = $fcmtoken;
+            }
+        }
+
+        $user->fcmtoken = $fcm_token;
+        $user->save();
 
         return response()->json(['result' => true, 'userInfo' => $user]);
     }

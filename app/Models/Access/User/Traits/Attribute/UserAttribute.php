@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models\Access\User\Traits\Attribute;
+use App\Models\AlertResponse;
 use App\Models\Group;
 
 /**
@@ -24,6 +25,18 @@ trait UserAttribute
         return ! app('session')->has(config('access.socialite_session_name'));
     }
 
+    public function isResponded($alertid)
+    {
+        $existResponse = AlertResponse::where('userid', $this->id)->where('alertid', $alertid)->first();
+        if($existResponse == null)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
     /**
      * @return string
      */

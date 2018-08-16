@@ -11,6 +11,7 @@ Route::group([
         Route::group(['namespace' => 'Curalert'], function () {
             Route::post('getalert', 'CuralertTableController')->name('alerts.get');
             Route::post('getresponse', 'CurResponseTableController')->name('responses.get');
+            Route::get('curalert/location/{userid}', 'CuralertController@locationview')->name('location.view');
 
             Route::get('curalert/index', 'CuralertController@index')->name('curalert.index');
 

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SendAlertCreated;
 use App\Models\Access\User\User;
 use App\Models\Alert;
+use App\Models\UserLocation;
 use App\Notifications\Backend\Alert\AlertCreated;
 use App\Repositories\Backend\Alert\AlertRepository;
 use Illuminate\Http\Request;
@@ -203,5 +204,19 @@ class CuralertController extends Controller
             ]);
         //dispatch(new SendAlertCreated($alert));
         return redirect()->route('admin.alert.curalert.index')->withFlashSuccess('Alert Dismissed Successfully.');
+    }
+
+    public function locationview($userid, Request $request)
+    {
+        $location = UserLocation::where('userid', $userid)->first();
+        if($location != null)
+        {
+            return view('backend.alert.tabs.viewresponse')->withLat($location->lat)->withLong($location->lng);
+        }
+        else
+        {
+            return redirect()->back();
+        }
+
     }
 }

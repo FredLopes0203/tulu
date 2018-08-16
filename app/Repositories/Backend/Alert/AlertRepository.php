@@ -265,10 +265,6 @@ class AlertRepository extends BaseRepository
     {
         $alert = $this->query()->where('id', $alertid)->first();
 
-        $isexist = AlertResponse::where('userid', $userid)
-                            ->where('alertid', $alert->id)
-                            ->first();
-
         if($response == "ok")
         {
             $responseVal = 1;
@@ -278,13 +274,33 @@ class AlertRepository extends BaseRepository
             $responseVal = 0;
         }
 
-        $newresponse = AlertResponse::create([
-            'alertid' => $alert->id,
-            'userid' => $userid,
-            'response' => $responseVal
-        ]);
+        $isexist = AlertResponse::where('userid', $userid)
+                            ->where('alertid', $alert->id)
+                            ->first();
 
-        return true;
+        if($isexist == null)
+        {
+            $newresponse = AlertResponse::create([
+                'alertid' => $alert->id,
+                'userid' => $userid,
+                'response' => $responseVal
+            ]);
+
+            return true;
+        }
+        else
+        {
+            if($isexist->response == $responseVal)
+            {
+                return false;
+            }
+            else
+            {
+                $isexist->response = $responseVal;
+                $isexist->save();
+                return true;
+            }
+        }
     }
 
     public function getResponses($user, $type)
@@ -330,6 +346,44 @@ class AlertRepository extends BaseRepository
             $response['locationInfo'] = $userlocation;
         }
 
+        if($type == 3)
+        {
+            $currentAlert = Alert::where('id', $alertid)->first();
+
+            if($currentAlert != null)
+            {
+                if($currentAlert->response == 1)
+                {
+                    $curOrgUsers = User::where('organization', $user->organization)
+                        ->where('isadmin', 0)
+                        ->where('status', 1)
+                        ->where('approve', 1)
+                        ->where('confirmed', 1)
+                        ->get();
+
+                    if($curOrgUsers->count() > 0)
+                    {
+                        foreach ($curOrgUsers as $curOrgUser)
+                        {
+                            $responded = $curOrgUser->isResponded($alertid);
+
+                            if(!$responded)
+                            {
+                                $curUserLocation = UserLocation::where('userid', $curOrgUser->id)->first();
+                                $responseModel = new Collection();
+                                $responseModel['userinfo'] = $curOrgUser;
+                                $responseModel['locationInfo'] = $curUserLocation;
+                                $responseModel['alertid'] = $alertid;
+                                $responseModel['userid'] = $curOrgUser->id;
+                                $responseModel['response'] = "3";
+                                $responseModel['id'] = 0;
+                                $responses->add($responseModel);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         return $responses;
     }
 

@@ -161,7 +161,7 @@ class ApiAlertController extends Controller
 
         $resAlerts = $this->alerts->getAlerts($currentOrganization);
 
-        return response()->json(['result' => true, 'alerts' => $resAlerts]);
+        return response()->json(['result' => true, 'alerts' => $resAlerts, 'myInfo' => $user]);
     }
 
     public function responseUserAlert(Request $request)
@@ -182,7 +182,8 @@ class ApiAlertController extends Controller
         }
         else
         {
-            return response()->json(['result' => false, 'message' => "You've already responded to this alert!"]);
+
+            return response()->json(['result' => false, 'message' => "You've already responded as '".$response."' to this alert!"]);
         }
     }
 
