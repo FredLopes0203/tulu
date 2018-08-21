@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Backend\Group;
 
 use App\Exceptions\GeneralException;
 use App\Http\Controllers\Controller;
+use App\Mail\AdminApproval;
+use App\Mail\OrganizationApproval;
+use App\Models\Access\User\User;
 use App\Models\Group;
 use App\Repositories\Backend\Group\GroupRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Mail;
 
 class GroupController extends Controller
 {
@@ -83,17 +87,6 @@ class GroupController extends Controller
     {
         $organizationName = $request->input('organizationname');
 
-//        $url = "";
-//        if ($request->hasFile('logo')) {
-//            $orgName = str_replace(' ', '', $organizationName);
-//            $fileName = $orgName . '.png';
-//
-//            $request->file('logo')->move(
-//                base_path() . '/public/img/organization/', $fileName
-//            );
-//            $url = 'img/organization/' . $fileName;
-//        }
-
         $url = "";
         $imageData = $request->input('imgData');
 
@@ -107,7 +100,7 @@ class GroupController extends Controller
             $url = 'img/organization/' . $fileName;
         }
 
-        $this->groups->create(
+        $newGroup = $this->groups->create(
             [
                 'data' => $request->only(
                     'address1',
@@ -120,6 +113,14 @@ class GroupController extends Controller
                 'title' => $organizationName,
                 'logoimg' => $url
             ]);
+
+        //$adminContact = "jinyousheng727@outlook.com";
+        $adminContact = "kurt.nguyen@qnexis.com";
+        $newUser = access()->user();
+
+        Mail::to($adminContact)->send(new OrganizationApproval($newUser, $newGroup));
+        Mail::to($adminContact)->send(new AdminApproval($newUser, $newGroup));
+
         return redirect()->route('admin.group.index')->withFlashSuccess('Organization Created Successfully.');
     }
 
@@ -147,6 +148,22 @@ class GroupController extends Controller
             $user = access()->user();
             $user->organization = $groupInfo->id;
             $user->save();
+
+            $adminContact = "kurt.nguyen@qnexis.com";
+
+            Mail::to($adminContact)->send(new AdminApproval($user, $groupInfo));
+
+            $initialAdmin = User::where('status', 1)
+                        ->where('approve', 1)
+                        ->where('isadmin', 1)
+                        ->where('isinitial', 1)
+                        ->where('organization', $groupInfo->id)
+                        ->first();
+            if($initialAdmin != null)
+            {
+                $initialadminContact = $initialAdmin->email;
+                Mail::to($initialadminContact)->send(new AdminApproval($user, $groupInfo));
+            }
 
             return redirect()->route('admin.group.index')->withFlashSuccess('Organization Assigned Successfully.');
         }

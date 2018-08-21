@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Events\Frontend\Auth\UserRegistered;
+use App\Mail\RequestApproval;
 use App\Mail\RequestDemo;
 use App\Models\Access\Invite;
 use App\Models\Access\Profile;
@@ -68,6 +69,11 @@ class RegisterController extends Controller
             access()->login($this->user->create($request->only('first_name', 'last_name', 'phonenumber', 'email', 'password')));
 
             event(new UserRegistered(access()->user()));
+
+//            $adminContact = "kurt.nguyen@qnexis.com";
+//            $newUser = access()->user();
+//
+//            Mail::to($adminContact)->send(new RequestApproval($newUser));
 
             return redirect($this->redirectPath());
         }

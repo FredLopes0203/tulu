@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Backend\Alert;
 
+use App\Jobs\SendAlertCreated;
 use App\Models\Access\User\User;
 use App\Models\Alert;
 use App\Models\AlertResponse;
@@ -311,7 +312,11 @@ class AlertRepository extends BaseRepository
         if($curalert == null)
         {
             $previousAlert = $this->query()->where('organization', $user->organization)->orderby('created_at', 'DESC')->first();
-            $alertid = $previousAlert->mainalert;
+
+            if($previousAlert != null)
+            {
+                $alertid = $previousAlert->mainalert;
+            }
         }
         else
         {
@@ -440,7 +445,7 @@ class AlertRepository extends BaseRepository
 
         DB::transaction(function () use ($alert) {
             if ($alert->save()) {
-                //dispatch(new SendAlertCreated($alert));
+                dispatch(new SendAlertCreated($alert));
             }
         });
         return "TRUE";
@@ -479,7 +484,7 @@ class AlertRepository extends BaseRepository
 
         DB::transaction(function () use ($alert) {
             if ($alert->save()) {
-                //dispatch(new SendAlertCreated($alert));
+                dispatch(new SendAlertCreated($alert));
             }
         });
         return "TRUE";
@@ -519,7 +524,7 @@ class AlertRepository extends BaseRepository
         DB::transaction(function () use ($alert, $currentOrganization) {
             if ($alert->save()) {
                 $res = Alert::where('status', 1)->where('organization', $currentOrganization)->update(['status' => 2]);
-                //dispatch(new SendAlertCreated($alert));
+                dispatch(new SendAlertCreated($alert));
             }
         });
         return "TRUE";

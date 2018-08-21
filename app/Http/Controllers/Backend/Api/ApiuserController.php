@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Backend\Api;
 
+use App\Mail\AdminApproval;
+use App\Mail\UserApproval;
 use App\Models\Access\User\SocialLogin;
 use App\Models\Group;
 use App\Models\UserLocation;
@@ -370,6 +372,45 @@ class ApiuserController extends Controller
 
             $user->organization = $groupInfo->id;
             $user->save();
+
+            //$adminContact = "kurt.nguyen@qnexis.com";
+            if($user->isadmin == 1)
+            {
+                $adminContact = "kurt.nguyen@qnexis.com";
+                Mail::to($adminContact)->send(new AdminApproval($user, $groupInfo));
+
+                $initialAdmin = User::where('status', 1)
+                    ->where('approve', 1)
+                    ->where('isadmin', 1)
+                    ->where('isinitial', 1)
+                    ->where('organization', $groupInfo->id)
+                    ->first();
+                if($initialAdmin != null)
+                {
+                    $initialadminContact = $initialAdmin->email;
+                    Mail::to($initialadminContact)->send(new AdminApproval($user, $groupInfo));
+                }
+            }
+            else
+            {
+                $adminContact = "kurt.nguyen@qnexis.com";
+                Mail::to($adminContact)->send(new UserApproval($user, $groupInfo));
+
+                $admins = User::where('status', 1)
+                    ->where('approve', 1)
+                    ->where('isadmin', 1)
+                    ->where('organization', $groupInfo->id)
+                    ->get();
+
+                if($admins->count() > 0)
+                {
+                    foreach ($admins as $admin)
+                    {
+                        $adminAddress = $admin->email;
+                        Mail::to($adminAddress)->send(new UserApproval($user, $groupInfo));
+                    }
+                }
+            }
 
             return response()->json(['result' => true, 'groupName' => $groupInfo->name]);
         }

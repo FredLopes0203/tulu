@@ -191,7 +191,7 @@ class LoginController extends Controller
         $email = $request->input('Mail');
         $message = $request->input('Message');
 
-        $adminContact = "jinyousheng727@outlook.com";
+        $adminContact = "kurt.nguyen@qnexis.com";
 
         Mail::to($adminContact)->send(new RequestDemo($email, $name, $message));
 
