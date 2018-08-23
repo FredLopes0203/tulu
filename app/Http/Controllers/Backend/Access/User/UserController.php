@@ -65,8 +65,17 @@ class UserController extends Controller
      */
     public function create(ManageUserRequest $request)
     {
-        return view('backend.access.create')
-            ->withRoles($this->roles->getAll());
+        $route = \Route::current()->getName();
+        $organizations = Group::where('approved', 1)->where('status', 1)->get();
+
+        if($route == "admin.access.user.create")
+        {
+            return view('backend.access.create')->withType(0)->withOrganizations($organizations);
+        }
+        else
+        {
+            return view('backend.access.create')->withType(1)->withOrganizations($organizations);
+        }
     }
 
     /**
@@ -74,26 +83,57 @@ class UserController extends Controller
      *
      * @return mixed
      */
-    public function store(StoreUserRequest $request)
+    public function store(ManageUserRequest $request)
     {
-        $this->users->create(
+        $type = 0;
+        $useremail = $request->input('email');
+
+        $url = "";
+        $imageData = $request->input('imgData');
+
+        if($imageData != null && $imageData != "")
+        {
+            $num = $this->generateRndString();
+            $email = str_replace(' ', '', $useremail);
+            $fileName = $email . '_'.$num.'png';
+            $imageData = str_replace('data:image/png;base64,', '', $imageData);
+            $imageData = str_replace(' ', '+', $imageData);
+            File::put(base_path() . '/public/img/profile/'.$fileName, base64_decode($imageData));
+            $url = 'img/profile/' . $fileName;
+        }
+
+        $route = \Route::current()->getName();
+
+        if($route == "admin.access.user.store")
+        {
+            $type = 0;
+        }
+        else
+        {
+            $type = 1;
+        }
+
+        $this->users->createUserFromSuperAdmin(
             [
                 'data' => $request->only(
-                    'real_name',
-                    'hero_name',
+                    'firstname',
+                    'lastname',
                     'email',
-                    'password',
-                    'age',
-                    'cardnum',
-                    'sex',
-                    'status',
-                    'confirmed',
-                    'confirmation_email'
+                    'phonenumber',
+                    'organization'
                 ),
-                'roles' => 2,
+                'type' => $type,
+                'profileimg' => $url
             ]);
 
-        return redirect()->route('admin.access.user.index')->withFlashSuccess(trans('alerts.backend.users.created'));
+        if($type == 0)
+        {
+            return redirect()->route('admin.access.user.index')->withFlashSuccess('User Created Successfully!');
+        }
+        else
+        {
+            return redirect()->route('admin.access.manager.index')->withFlashSuccess('Admin Created Successfully!');
+        }
     }
 
     /**

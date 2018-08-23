@@ -49,6 +49,9 @@
         });
 
         $(document).ready(function() {
+            var d = new Date();
+            var n = d.getTimezoneOffset();
+
             $(function() {
                 var table = $('#alert-table').DataTable({
                     dom: 'lfrtip',
@@ -58,6 +61,7 @@
                     ajax: {
                         url: '{{ route("admin.alert.history.get") }}',
                         type: 'post',
+                        data: {diff: n},
                         error: function (xhr, err) {
                             if (err === 'parsererror')
                                 location.reload();
@@ -67,7 +71,7 @@
                         {data: 'title', name: 'title', searchable: false, sortable: false},
                         {data: 'content', name: 'content', searchable: false, sortable: false},
                         {data: 'creator_name', name: 'creator_name', searchable: false, sortable: false},
-                        {data: 'created_at', name: 'created_at', sortable:false},
+                        {data: 'createdtime', name: 'createdtime', sortable:false},
                     ],
                     order: [[2, "asc"]]
                 });

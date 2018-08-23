@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Access\User\User;
 use App\Repositories\Backend\Access\User\UserRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 
 class MyuserController extends Controller
 {
@@ -22,6 +23,11 @@ class MyuserController extends Controller
         return view('backend.myuser.index');
     }
 
+    public function create(Request $request)
+    {
+        return view('backend.myuser.create');
+    }
+
     public function getPending(Request $request)
     {
         return view('backend.myuser.pending');
@@ -35,6 +41,39 @@ class MyuserController extends Controller
     public function getDeleted(Request $request)
     {
         return view('backend.myuser.deleted');
+    }
+
+    public function store(Request $request)
+    {
+        $useremail = $request->input('email');
+
+        $url = "";
+        $imageData = $request->input('imgData');
+
+        if($imageData != null && $imageData != "")
+        {
+            $num = $this->generateRndString();
+            $email = str_replace(' ', '', $useremail);
+            $fileName = $email . '_'.$num.'png';
+            $imageData = str_replace('data:image/png;base64,', '', $imageData);
+            $imageData = str_replace(' ', '+', $imageData);
+            File::put(base_path() . '/public/img/profile/'.$fileName, base64_decode($imageData));
+            $url = 'img/profile/' . $fileName;
+        }
+
+        $newUser = $this->myusers->createUser(
+            [
+                'data' => $request->only(
+                    'firstname',
+                    'lastname',
+                    'email',
+                    'phonenumber'
+                ),
+                'profileimg' => $url
+            ]
+        );
+
+        return redirect()->route('admin.myuser.index')->withFlashSuccess('User Created Successfully.');
     }
 
     public function show(User $user, Request $request)
@@ -106,5 +145,16 @@ class MyuserController extends Controller
 
             return redirect()->route($status == 1 ? $approve == 1 ? 'admin.myuser.index': 'admin.myuser.pending' : 'admin.myuser.deactivated')->withFlashSuccess('User Restored Successfully.');
         }
+    }
+
+    function generateRndString($length = 6) {
+        $characters = '1234567890';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
+
+        return $randomString;
     }
 }

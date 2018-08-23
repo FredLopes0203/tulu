@@ -35,13 +35,8 @@ class CurResponseTableController extends Controller
         $type = $request->input("type");
 
         return Datatables::of($this->alerts->getForResponseDataTable($type))
-            ->escapeColumns(['username'])
-            ->addColumn('creator_name', function($alert){
-                return $alert->creator_name;
-            })
-            ->addColumn('type_label', function($alert){
-                return $alert->type_label;
-            })
+            ->escapeColumns(['username', 'locationbtn'])
+            ->rawColumns(['locationbtn'])
             ->make(true);
     }
 }

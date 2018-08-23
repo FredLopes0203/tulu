@@ -7,6 +7,7 @@ use App\Models\Access\User\User;
 use App\Models\Alert;
 use App\Models\AlertResponse;
 use App\Models\UserLocation;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -162,12 +163,20 @@ class AlertRepository extends BaseRepository
         return $alert;
     }
 
-    public function getForDataTable()
+    public function getForDataTable($diff)
     {
         $currentUser = access()->user();
         $currentOrganization = $currentUser->organization;
 
         $alerts = $this->query()->where('status', 1)->where('organization', $currentOrganization)->orderby('created_at', 'DESC')->get();
+
+        foreach ($alerts as $alert)
+        {
+            $createdDate = (new Carbon($alert->created_at))->subMinutes($diff)->format('m/d/y H:i A');
+
+            $alert["createddate"] = substr($createdDate, 0, 8);
+            $alert["createdhour"] = substr($createdDate, 8);
+        }
         return $alerts;
     }
 
@@ -182,51 +191,101 @@ class AlertRepository extends BaseRepository
                                     ->orderby('created_at', 'DESC')->first();
         if($curalert != null)
         {
-            $responses = AlertResponse::where('alertid', $curalert->id);
-
-            if($type == "0")
+            if($curalert->response == 1)
             {
-                $responses = $responses->where('response', 0);
-            }
-            else if($type == "1")
-            {
-                $responses = $responses->where('response', 1);
-            }
+                $responses = AlertResponse::where('alertid', $curalert->id);
 
-            $responses = $responses->orderBy('created_at', 'DESC')->get();
-            foreach ($responses as $responsee)
-            {
-                $responserid = $responsee->userid;
-                $responserInfo = User::where('id', $responserid)->first();
-
-                $responsee['username'] = "Unknown";
-                $responsee['useremail'] = "Unknown";
-                $responsee['phonenumber'] = "Unknown";
-                $responsee['location'] = "Unknown";
-                $responsee['profileimage'] = "<img src='".$responserInfo->getProfileImage()."' class='img-circle' style='max-width: 70px;' alt='User Image'/>"; //asset("img/profile/sample.png");//$responserInfo->profile_image;
-
-                if($responserInfo != null)
+                if($type == "0")
                 {
-                    $responsee['username'] = $responserInfo->first_name." ".$responserInfo->last_name;
-                    $responsee['useremail'] = $responserInfo->email;
-                    $responsee['phonenumber'] = $responserInfo->phonenumber;
-                    $userlocation = UserLocation::where('userid', $responserInfo->id)->first();
-                    if($userlocation != null)
+                    $responses = $responses->where('response', 0);
+                }
+                else if($type == "1")
+                {
+                    $responses = $responses->where('response', 1);
+                }
+
+                $responses = $responses->orderBy('created_at', 'DESC')->get();
+                foreach ($responses as $responsee)
+                {
+                    $responserid = $responsee->userid;
+                    $responserInfo = User::where('id', $responserid)->first();
+
+                    $responsee['username'] = "Unknown";
+                    $responsee['useremail'] = "Unknown";
+                    $responsee['phonenumber'] = "Unknown";
+                    $responsee['location'] = "Unknown";
+                    $responsee['profileimage'] = "<img src='".$responserInfo->getProfileImage()."' class='img-circle' style='max-width: 70px;' alt='User Image'/>"; //asset("img/profile/sample.png");//$responserInfo->profile_image;
+
+                    if($responserInfo != null)
                     {
-                        $responsee['location'] = $userlocation->lat.", ".$userlocation->lng;
+                        $responsee['username'] = $responserInfo->first_name." ".$responserInfo->last_name;
+                        $responsee['useremail'] = $responserInfo->email;
+                        $responsee['phonenumber'] = $responserInfo->phonenumber;
+                        $userlocation = UserLocation::where('userid', $responserInfo->id)->first();
+                        if($userlocation != null)
+                        {
+                            $responsee['location'] = $userlocation->lat.", ".$userlocation->lng;
+                        }
+
+                        $responsee['locationbtn'] = '<a href="/admin/alert/curalert/location/'.$responserInfo->id.'" class="btn btn-xs btn-success"><i class="fa fa-map-marker" style="color: white" data-toggle="tooltip" data-placement="top" title="View User Location"></i></a> ';
+                    }
+
+                    if($responsee->response == 1)
+                    {
+                        $responsee['responsestr'] = "OK";
+                    }
+                    else
+                    {
+                        $responsee['responsestr'] = "NOT OK";
                     }
                 }
 
-                if($responsee->response == 1)
+                if($type == "2")
                 {
-                    $responsee['responsestr'] = "OK";
+                    $curOrgUsers = User::where('organization', $currentUser->organization)
+                        ->where('isadmin', 0)
+                        ->where('status', 1)
+                        ->where('approve', 1)
+                        ->where('confirmed', 1)
+                        ->get();
+
+                    if($curOrgUsers->count() > 0)
+                    {
+                        foreach ($curOrgUsers as $curOrgUser)
+                        {
+                            $responded = $curOrgUser->isResponded($curalert->id);
+
+                            if(!$responded)
+                            {
+                                $curUserLocation = UserLocation::where('userid', $curOrgUser->id)->first();
+                                $responseModel = new Collection();
+                                $responseModel['id'] = 0;
+                                $responseModel['alertid'] = $curalert->id;
+                                $responseModel['userid'] = $curOrgUser->id;
+                                $responseModel['response'] = "3";
+
+                                $responseModel['username'] = $curOrgUser->first_name." ".$curOrgUser->last_name;
+                                $responseModel['useremail'] = $curOrgUser->email;
+                                $responseModel['phonenumber'] = $curOrgUser->phonenumber;
+                                $responseModel['location'] = "Unknown";
+                                $responseModel['profileimage'] = "<img src='".$curOrgUser->getProfileImage()."' class='img-circle' style='max-width: 70px;' alt='User Image'/>"; //asset("img/profile/sample.png");//$responserInfo->profile_image;
+                                $responseModel['locationbtn'] = '<a href="/admin/alert/curalert/location/'.$curOrgUser->id.'" class="btn btn-xs btn-success"><i class="fa fa-map-marker" style="color: white" data-toggle="tooltip" data-placement="top" title="View User Location"></i></a> ';
+                                if($curUserLocation != null)
+                                {
+                                    $responseModel['location'] = $curUserLocation->lat.", ".$curUserLocation->lng;
+                                }
+                                $responseModel['responsestr'] = "Pending";
+                                $responses->add($responseModel);
+                            }
+                        }
+                    }
                 }
-                else
-                {
-                    $responsee['responsestr'] = "NOT OK";
-                }
+                return $responses;
             }
-            return $responses;
+            else
+            {
+                return new Collection();
+            }
         }
         else
         {
@@ -536,21 +595,36 @@ class AlertRepository extends BaseRepository
         return $res;
     }
 
-    public function getForHistoryDataTable()
+    public function getForHistoryDataTable($diff)
     {
         $currentUser = access()->user();
         $currentOrganization = $currentUser->organization;
 
         $alerts = $this->query()->where('mainalert', 0)->where('organization', $currentOrganization)->orderby('created_at', 'DESC')->get();
+        foreach ($alerts as $alert)
+        {
+            $createdDate = (new Carbon($alert->created_at))->subMinutes($diff)->format('m/d/y H:i A');
+
+            $alert["createddate"] = substr($createdDate, 0, 8);
+            $alert["createdhour"] = substr($createdDate, 8);
+        }
         return $alerts;
     }
 
-    public function getForHistoryDetailDataTable($alertID)
+    public function getForHistoryDetailDataTable($alertID, $diff)
     {
         $currentUser = access()->user();
         $currentOrganization = $currentUser->organization;
 
         $alerts = $this->query()->where('id', $alertID)->orwhere('mainalert', $alertID)->orderby('created_at', 'DESC')->get();
+        foreach ($alerts as $alert)
+        {
+            $createdDate = (new Carbon($alert->created_at))->subMinutes($diff)->format('m/d/y H:i A');
+
+            $alert["createddate"] = substr($createdDate, 0, 8);
+            $alert["createdhour"] = substr($createdDate, 8);
+        }
+
         return $alerts;
     }
 

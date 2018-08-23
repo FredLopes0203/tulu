@@ -26,7 +26,9 @@
 
 
         <div class="box-body">
-            <div id="mymapview" style="width: 100%; height: 460px; background-color: darkgrey"></div>
+            <div id="mymapview" style="width: 100%; height: 460px; background-color: darkgrey">
+                No Location Info
+            </div>
         </div><!-- /.box-body -->
     </div><!--box-->
 @endsection
@@ -38,23 +40,30 @@
         var lat = parseFloat(latstr);
         var lng = parseFloat(lngstr);
 
-        var centerPos = new google.maps.LatLng(lat,lng);
-        var mapProp= {
-            center:centerPos,
-            zoom:19,
-        };
+        if(lat == 0 && lng == 0)
+        {
 
-        var map=new google.maps.Map(document.getElementById("mymapview"),mapProp);
-        var marker = new google.maps.Marker({position: centerPos});
+        }
+        else
+        {
+            var centerPos = new google.maps.LatLng(lat,lng);
+            var mapProp= {
+                center:centerPos,
+                zoom:19,
+            };
 
-        marker.setMap(map);
+            var map=new google.maps.Map(document.getElementById("mymapview"),mapProp);
+            var marker = new google.maps.Marker({position: centerPos});
+
+            marker.setMap(map);
+        }
     }
 </script>
 
 @section('after-scripts')
     {{ Html::script("https://cdn.datatables.net/v/bs/dt-1.10.15/datatables.min.js") }}
     {{ Html::script("js/backend/plugin/datatables/dataTables-extend.js") }}
-    {{ Html::script("https://maps.googleapis.com/maps/api/js?key=AIzaSyBsC_g9qzNWG2ER67DXe0NcsQf8NPUIbtg&callback=myMap") }}
+    {{ Html::script("https://maps.googleapis.com/maps/api/js?key=AIzaSyDvK-I7jER8_7ySIbRRV5HdAQLjBhuvYEE&callback=myMap") }}
 
     <script>
         $.ajaxSetup({

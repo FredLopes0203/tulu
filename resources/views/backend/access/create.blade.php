@@ -1,192 +1,318 @@
 @extends ('backend.layouts.app')
 
-@section ('title', trans('labels.backend.access.users.management') . ' | ' . trans('labels.backend.access.users.create'))
+@if($type == 0)
+    @section ('title', 'User Management' . ' | ' . 'Create User')
+@else
+    @section ('title', 'Admin Management' . ' | ' . 'Create Admin')
+@endif
+
+
+@section('after-styles')
+    {{ Html::style('css/category.css') }}
+    {{ Html::style('js/select2/select2.min.css') }}
+    {{ Html::style('js/Crop/croppie.css') }}
+@endsection
 
 @section('page-header')
-    <h1>
-        {{ trans('labels.backend.access.users.management') }}
-        <small>{{ trans('labels.backend.access.users.create') }}</small>
-    </h1>
+    @if($type == 0)
+        <h1>
+            User Management
+            <small>Create User</small>
+        </h1>
+    @else
+        <h1>
+            Admin Management
+            <small>Create Admin</small>
+        </h1>
+    @endif
 @endsection
 
 @section('content')
-    {{ Form::open(['route' => 'admin.access.user.store', 'class' => 'form-horizontal', 'role' => 'form', 'method' => 'post']) }}
 
-        <div class="box box-success">
-            <div class="box-header with-border">
-                <h3 class="box-title">{{ trans('labels.backend.access.users.create') }}</h3>
+    @if($type == 0)
+        {{ Form::open(['route' => 'admin.access.user.store', 'id' => 'usercreateform', 'class' => 'form-horizontal', 'role' => 'form', 'method' => 'post', 'enctype' => 'multipart/form-data']) }}
+    @else
+        {{ Form::open(['route' => 'admin.access.manager.store', 'id' => 'usercreateform', 'class' => 'form-horizontal', 'role' => 'form', 'method' => 'post', 'enctype' => 'multipart/form-data']) }}
+    @endif
 
-                <div class="box-tools pull-right">
-                    @include('backend.access.includes.partials.user-header-buttons')
-                </div><!--box-tools pull-right-->
-            </div><!-- /.box-header -->
+    <div class="box box-success">
+        <div class="box-header with-border">
+            @if($type == 0)
+                <h3 class="box-title">User Info</h3>
+            @else
+                <h3 class="box-title">Admin Info</h3>
+            @endif
+        </div><!-- /.box-header -->
 
-            <div class="box-body">
-                <div class="form-group">
-                    {{ Form::label('first_name', 'Real Name', ['class' => 'col-lg-2 control-label']) }}
+        <div class="box-body">
 
-                    <div class="col-lg-10">
-                        {{ Form::text('real_name', null, ['class' => 'form-control', 'maxlength' => '191', 'required' => 'required', 'autofocus' => 'autofocus', 'placeholder' => 'Real Name']) }}
-                    </div><!--col-lg-10-->
-                </div><!--form control-->
+            <div class="form-group">
+                {{ Form::label('organization', 'Organization', ['class' => 'col-lg-2 control-label']) }}
 
-                <div class="form-group">
-                    {{ Form::label('last_name', 'SuperHero Name',
-                     ['class' => 'col-lg-2 control-label']) }}
+                <div class="col-lg-10">
+                    <select style="width: 100%" required="required" class="form-control select2" id="organization" name ="organization">
+                        <option value="0" selected="selected" value="0" disabled="disabled">--- Choose Organization ---</option>
+                        @foreach($organizations as $organization)
+                            <option value="{{$organization->id}}">{{$organization->name}}</option>
+                        @endforeach
+                    </select>
+                </div><!--col-lg-10-->
+            </div><!--form control-->
 
-                    <div class="col-lg-10">
-                        {{ Form::text('hero_name', null, ['class' => 'form-control', 'maxlength' => '191', 'required' => 'required', 'placeholder' => 'SuperHero Name']) }}
-                    </div><!--col-lg-10-->
-                </div><!--form control-->
+            <div class="form-group">
+                {{ Form::label('firstname', 'First Name', ['class' => 'col-lg-2 control-label']) }}
 
-                <div class="form-group">
-                    {{ Form::label('email', trans('validation.attributes.backend.access.users.email'), ['class' => 'col-lg-2 control-label']) }}
+                <div class="col-lg-10">
+                    @if($type == 0)
+                        {{ Form::text('firstname', null, ['class' => 'form-control', 'maxlength' => '191', 'required' => 'required', 'autofocus' => 'autofocus', 'placeholder' => 'User First Name']) }}
+                    @else
+                        {{ Form::text('firstname', null, ['class' => 'form-control', 'maxlength' => '191', 'required' => 'required', 'autofocus' => 'autofocus', 'placeholder' => 'Admin First Name']) }}
+                    @endif
 
-                    <div class="col-lg-10">
-                        {{ Form::email('email', null, ['class' => 'form-control', 'maxlength' => '191', 'required' => 'required', 'placeholder' => trans('validation.attributes.backend.access.users.email')]) }}
-                    </div><!--col-lg-10-->
-                </div><!--form control-->
+                </div><!--col-lg-10-->
+            </div><!--form control-->
 
-                <div class="form-group">
-                    {{ Form::label('password', trans('validation.attributes.backend.access.users.password'), ['class' => 'col-lg-2 control-label']) }}
+            <div class="form-group">
+                {{ Form::label('lastname', 'Last Name', ['class' => 'col-lg-2 control-label']) }}
 
-                    <div class="col-lg-10">
-                        {{ Form::password('password', ['class' => 'form-control', 'required' => 'required', 'placeholder' => trans('validation.attributes.backend.access.users.password')]) }}
-                    </div><!--col-lg-10-->
-                </div><!--form control-->
+                <div class="col-lg-10">
+                    @if($type == 0)
+                        {{ Form::text('lastname', null, ['class' => 'form-control', 'maxlength' => '191', 'required' => 'required', 'autofocus' => 'autofocus', 'placeholder' => 'User Last Name']) }}
+                    @else
+                        {{ Form::text('lastname', null, ['class' => 'form-control', 'maxlength' => '191', 'required' => 'required', 'autofocus' => 'autofocus', 'placeholder' => 'Admin Last Name']) }}
+                    @endif
+                </div><!--col-lg-10-->
+            </div><!--form control-->
 
-                <div class="form-group">
-                    {{ Form::label('password_confirmation', trans('validation.attributes.backend.access.users.password_confirmation'), ['class' => 'col-lg-2 control-label']) }}
+            <div class="form-group">
+                {{ Form::label('email', 'Email', ['class' => 'col-lg-2 control-label']) }}
 
-                    <div class="col-lg-10">
-                        {{ Form::password('password_confirmation', ['class' => 'form-control', 'required' => 'required', 'placeholder' => trans('validation.attributes.backend.access.users.password_confirmation')]) }}
-                    </div><!--col-lg-10-->
-                </div><!--form control-->
+                <div class="col-lg-10">
 
-                <div class="form-group">
-                    {{ Form::label('age', 'Age', ['class' => 'col-lg-2 control-label']) }}
+                    @if($type == 0)
+                        {{ Form::text('email', null, ['class' => 'form-control', 'maxlength' => '191', 'required' => 'required', 'autofocus' => 'autofocus', 'placeholder' => 'User Email']) }}
+                    @else
+                        {{ Form::text('email', null, ['class' => 'form-control', 'maxlength' => '191', 'required' => 'required', 'autofocus' => 'autofocus', 'placeholder' => 'Admin Email']) }}
+                    @endif
+                </div><!--col-lg-10-->
+            </div><!--form control-->
 
-                    <div class="col-lg-10">
-                        {{ Form::number('age', '', ['class' => 'form-control', 'maxlength' => '191', 'required' => 'required', 'autofocus' => 'autofocus', 'placeholder' => 'Age']) }}
-                    </div><!--col-lg-10-->
-                </div><!--form control-->
+            <div class="form-group">
+                {{ Form::label('phonenumber', 'Phone Number', ['class' => 'col-lg-2 control-label']) }}
 
-                <div class="form-group">
-                    {{ Form::label('age', 'Credit Card', ['class' => 'col-lg-2 control-label']) }}
+                <div class="col-lg-10">
+                    {{ Form::text('phonenumber', null, ['class' => 'form-control', 'maxlength' => '191', 'required' => 'required', 'autofocus' => 'autofocus', 'placeholder' => 'Phone Number']) }}
+                </div><!--col-lg-10-->
+            </div><!--form control-->
 
-                    <div class="col-lg-10">
-                        {{ Form::number('cardnum', '', ['class' => 'form-control', 'maxlength' => '191', 'required' => 'required', 'autofocus' => 'autofocus', 'placeholder' => 'Credit Card Number']) }}
-                    </div><!--col-lg-10-->
-                </div><!--form control-->
-
-                <div class="form-group">
-                    {{ Form::label('sex', 'Sex', ['class' => 'col-lg-2 control-label']) }}
-
-                    <div class="col-lg-10" style="margin-top: 7px">
-                        <input class="sexradio" type="radio" value="1" name="sex" id="sex-1" required /> <label for="sex-1">Male</label>
-                        <input class="sexradio" style="margin-left: 20px" type="radio" value="2" name="sex" id="sex-2" /> <label for="sex-2">Female</label>
+            <div class="form-group">
+                {{ Form::label('photourl', 'Profile Image', ['class' => 'col-lg-2 control-label']) }}
+                <div class="col-lg-10">
+                    <div style="max-width: 300px;">
+                        <div class="main-img-preview">
+                            <img id="logoImgView" class="thumbnail logo-img-preview" src="{{asset('img/samplelogo.png')}}" title="Preview Logo">
+                        </div>
                     </div>
+
+                    <button class="btn btn-primary" id="editBtn">Edit Profile Image</button>
                 </div>
+            </div>
 
+            <div class="form-group" style="margin-top:50px;">
+                <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+                    <div class="pull-right">
+                        {{ Form::submit(trans('buttons.general.crud.create'), ['class' => 'btn btn-success btn-md', 'style' => 'width:100px !important;']) }}
+                    </div><!--pull-right-->
+                </div><!--col-lg-10-->
+                {{--<div class="col-lg-2">--}}
+                {{--</div>--}}
+                <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+                    <div class="pull-left">
+                        @if($type == 0)
+                            {{ link_to_route('admin.access.user.index', trans('buttons.general.cancel'), [], ['class' => 'btn btn-danger btn-md', 'style' => 'width:100px !important;']) }}
+                        @else
+                            {{ link_to_route('admin.access.manager.index', trans('buttons.general.cancel'), [], ['class' => 'btn btn-danger btn-md', 'style' => 'width:100px !important;']) }}
+                        @endif
 
-                <div class="form-group">
-                    {{ Form::label('status', trans('validation.attributes.backend.access.users.active'), ['class' => 'col-lg-2 control-label']) }}
+                    </div><!--pull-left-->
+                </div><!--col-lg-10-->
+            </div><!--form control-->
+        </div><!-- /.box-body -->
+    </div><!--box-->
 
-                    <div class="col-lg-1" style="margin-top: 7px">
-                        {{ Form::checkbox('status', '1', true) }}
-                    </div><!--col-lg-1-->
-                </div><!--form control-->
+    {{--<div class="box box-info">--}}
+    <div class="box-body">
 
-                <div class="form-group">
-                    {{ Form::label('confirmed', trans('validation.attributes.backend.access.users.confirmed'), ['class' => 'col-lg-2 control-label']) }}
-
-                    <div class="col-lg-1" style="margin-top: 7px">
-                        {{ Form::checkbox('confirmed', '1', true) }}
-                    </div><!--col-lg-1-->
-                </div><!--form control-->
-
-                @if (! config('access.users.requires_approval'))
-                    <div class="form-group">
-                        <label class="col-lg-2 control-label">{{ trans('validation.attributes.backend.access.users.send_confirmation_email') }}<br/>
-                            <small>{{ trans('strings.backend.access.users.if_confirmed_off') }}</small>
-                        </label>
-
-                        <div class="col-lg-1" style="margin-top: 7px">
-                            {{ Form::checkbox('confirmation_email', '1') }}
-                        </div><!--col-lg-1-->
-                    </div><!--form control-->
-                @endif
-
-                {{--<div class="form-group">--}}
-                    {{--{{ Form::label('associated_roles', trans('validation.attributes.backend.access.users.associated_roles'), ['class' => 'col-lg-2 control-label']) }}--}}
-
-                    {{--<div class="col-lg-3" style="margin-top: 7px">--}}
-                        {{--@if (count($roles) > 0)--}}
-                            {{--@foreach($roles as $role)--}}
-                                {{--<input class="roleradio" type="radio" value="{{ $role->id }}" name="assignees_roles" id="role-{{ $role->id }}" {{ is_array(old('assignees_roles')) && in_array($role->id, old('assignees_roles')) ? 'selected' : '' }} /> <label for="role-{{ $role->id }}">{{ $role->name }}</label>--}}
-                                {{--<a href="#" data-role="role_{{ $role->id }}" class="show-permissions small">--}}
-                                    {{--(--}}
-                                        {{--<span class="show-text">{{ trans('labels.general.show') }}</span>--}}
-                                        {{--<span class="hide-text hidden">{{ trans('labels.general.hide') }}</span>--}}
-                                        {{--{{ trans('labels.backend.access.users.permissions') }}--}}
-                                    {{--)--}}
-                                {{--</a>--}}
-                                {{--<br/>--}}
-                                {{--<div class="permission-list hidden" data-role="role_{{ $role->id }}">--}}
-                                    {{--@if ($role->all)--}}
-                                        {{--{{ trans('labels.backend.access.users.all_permissions') }}<br/><br/>--}}
-                                    {{--@else--}}
-                                        {{--@if (count($role->permissions) > 0)--}}
-                                            {{--<blockquote class="small">--}}{{----}}
-                                        {{----}}{{--@foreach ($role->permissions as $perm)--}}{{----}}
-                                            {{----}}{{--{{$perm->display_name}}<br/>--}}
-                                                {{--@endforeach--}}
-                                            {{--</blockquote>--}}
-                                        {{--@else--}}
-                                            {{--{{ trans('labels.backend.access.users.no_permissions') }}<br/><br/>--}}
-                                        {{--@endif--}}
-                                    {{--@endif--}}
-                                {{--</div><!--permission list-->--}}
-                            {{--@endforeach--}}
-                        {{--@else--}}
-                            {{--{{ trans('labels.backend.access.users.no_roles') }}--}}
-                        {{--@endif--}}
-                    {{--</div><!--col-lg-3-->--}}
-                {{--</div><!--form control-->--}}
-            </div><!-- /.box-body -->
-        </div><!--box-->
-
-        <div class="box box-info">
-            <div class="box-body">
-                <div class="pull-left">
-                    {{ link_to_route('admin.access.user.index', trans('buttons.general.cancel'), [], ['class' => 'btn btn-danger btn-xs']) }}
-                </div><!--pull-left-->
-
-                <div class="pull-right">
-                    {{ Form::submit(trans('buttons.general.crud.create'), ['class' => 'btn btn-success btn-xs']) }}
-                </div><!--pull-right-->
-
-                <div class="clearfix"></div>
-            </div><!-- /.box-body -->
-        </div><!--box-->
+        <div class="clearfix"></div>
+    </div><!-- /.box-body -->
+    {{--</div><!--box-->--}}
 
     {{ Form::close() }}
+
+    <div id="myModal" class="profileimgmodal">
+        <!-- Modal content -->
+        <div class="profileimgmodal-content">
+            <div style="max-width: 300px;">
+                <div class="main-img-preview">
+                    <img id="logopictureview" class="thumbnail logo-img-preview" src="{{asset('img/samplelogo.png')}}" title="Preview Profile Image">
+                </div>
+                <div class="input-group img-preview">
+                    <input id="LogoImg" class="form-control fake-shadow" placeholder="Choose File" disabled="disabled">
+                    <div class="input-group-btn">
+                        <div class="fileUpload btn btn-danger fake-shadow">
+                            <span><i class="glyphicon glyphicon-upload"></i> Upload Profile Image</span>
+                            <input id="logo-id" name="logo" type="file" class="attachment_upload">
+                        </div>
+                    </div>
+                </div>
+                <p class="help-block">* Upload square image for profile image.</p>
+                <button class="btn btn-success" style="width: 145px;" id="editSave">Save</button>
+                <button class="btn btn-danger" id="editCancel" style="width: 145px; float:right;">Cancel</button>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('after-scripts')
     {{ Html::script('js/backend/access/users/script.js') }}
-
+    {{ Html::script("js/select2/select2.full.min.js") }}
+    {{ Html::script("js/Crop/croppie.js") }}
     <script>
         $(document).ready(function() {
-            /*$('.sexradio').change(function(){
-                var selectedSex = $('.sexradio:checked').val();
-                alert(selectedSex);
+            $(".select2").select2();
+            $(".select2-selection").css("height", "35px");
+            $(".select2-selection__rendered").css("padding-top", "2px");
+            $(".select2-selection__arrow").css("top", "4px");
+
+            var logo = document.getElementById('logo-id');
+            logo.className = 'attachment_upload';
+            logo.onchange = function() {
+                document.getElementById('LogoImg').value = this.value.substring(12);
+            };
+            var saveAvailable = 0;
+
+
+            var modal = document.getElementById('myModal');
+            var editBtn = document.getElementById("editBtn");
+            var saveBtn = document.getElementById("editSave");
+            var cancelBtn = document.getElementById("editCancel");
+
+            var $imgView = $('#logopictureview');
+            var $imageView = $('#logoImgView');
+            var imageData = "";
+
+            $logoCrop = $imgView.croppie({
+                enableExif: true,
+                enforceBoundaryboolean: false,
+                viewport: {
+                    width: 200,
+                    height: 200,
+                    type: 'square'
+                },
+                boundary: {
+                    width: 300,
+                    height: 300
+                },
             });
 
-            $('.roleradio').change(function(){
-                var selectedRole = $('.roleradio:checked').val();
-                alert(selectedRole);
-            });*/
+            editBtn.onclick = function() {
+                event.preventDefault();
+
+                modal.style.display = "block";
+
+                $logoCrop.croppie('bind');
+                $logoCrop.croppie('setZoom', 10.0);
+            }
+
+            saveBtn.onclick = function() {
+                event.preventDefault();
+
+                $logoCrop.croppie('result', {
+                    type: 'canvas',
+                    size: 'viewport'
+                }).then(function (resp) {
+                    saveAvailable = 1;
+                    $imageView.attr('src', resp);
+                    imageData = resp;
+
+                    modal.style.display = "none";
+                });
+            }
+
+            cancelBtn.onclick = function() {
+                event.preventDefault();
+                modal.style.display = "none";
+            }
+
+            function readURL(input) {
+                if (input.files && input.files[0]) {
+                    var reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        var selectedImage = new Image();
+                        selectedImage.src =  e.target.result;
+                        console.log(e.target.result);
+                        selectedImage.onload = function ()
+                        {
+                            $('#logopictureview').attr('src', e.target.result);
+
+                            $logoCrop.croppie('bind', {
+                                url: e.target.result
+                            }).then(function(){
+                                console.log('jQuery bind complete');
+                            });
+                        };
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+
+            $("#logo-id").change(function() {
+                if(this.value == "")
+                {
+
+                }
+                else
+                {
+                    readURL(this);
+                }
+            });
+
+
+            $("#usercreateform").submit(function(evt){
+                var orgVal = $("#organization").val();
+
+                if(orgVal == null || orgVal == 0)
+                {
+                    swal({
+                        title: "Choose Organization.",
+                        type: "error",
+                        confirmButtonClass: 'btn btn-danger',
+                        confirmButtonText: 'OK'
+                    });
+                    return false;
+                }
+
+                if(imageData == "")
+                {
+                    swal({
+                        title: "Choose image for the profile.",
+                        type: "error",
+                        confirmButtonClass: 'btn btn-danger',
+                        confirmButtonText: 'OK'
+                    });
+                    return false;
+                }
+
+
+
+                var imgInput = $("<input>")
+                    .attr("type", "hidden")
+                    .attr("name", "imgData").val(imageData);
+                $("#usercreateform").append(imgInput);
+
+                return true;
+            });
         });
     </script>
 @endsection

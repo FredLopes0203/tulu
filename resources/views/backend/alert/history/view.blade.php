@@ -55,7 +55,8 @@
         });
 
         $(document).ready(function() {
-
+            var d = new Date();
+            var n = d.getTimezoneOffset();
             var alertID = "<?php echo $alert->id?>";
             $(function() {
                 $('#alert-table').DataTable({
@@ -65,7 +66,7 @@
                     autoWidth: false,
                     ajax: {
                         url: '{{ route("admin.alert.history.detail.get") }}',
-                        data: {alertid: alertID},
+                        data: {alertid: alertID, diff:n},
                         type: 'post',
                         error: function (xhr, err) {
                             if (err === 'parsererror')
@@ -77,7 +78,7 @@
                         {data: 'content', name: 'content', searchable: false, sortable: false},
                         {data: 'type_label', name: 'type_label', searchable: false, sortable: false},
                         {data: 'creator_name', name: 'creator_name', searchable: false, sortable: false},
-                        {data: 'created_at', name: 'created_at', sortable:false},
+                        {data: 'createdtime', name: 'createdtime', sortable:false},
                     ]
                 });
             });

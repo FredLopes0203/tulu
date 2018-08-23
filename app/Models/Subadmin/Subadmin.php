@@ -2,6 +2,7 @@
 
 namespace App\Models\Subadmin;
 
+use App\Models\Access\User\Traits\UserAccess;
 use App\Models\Subadmin\Traits\Attribute\SubadminAttribute;
 use App\Models\Subadmin\Traits\Relationship\SubadminRelationship;
 use Illuminate\Notifications\Notifiable;
@@ -15,6 +16,7 @@ class Subadmin extends Authenticatable
 {
     use Notifiable,
         SoftDeletes,
+        UserAccess,
         SubadminRelationship,
         SubadminAttribute;
 

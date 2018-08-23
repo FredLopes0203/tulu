@@ -215,7 +215,7 @@ class CuralertController extends Controller
         }
         else
         {
-            return redirect()->back();
+            return view('backend.alert.tabs.viewresponse')->withLat("0")->withLong("0");
         }
 
     }

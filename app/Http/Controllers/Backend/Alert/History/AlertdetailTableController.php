@@ -32,14 +32,18 @@ class AlertdetailTableController extends Controller
     public function __invoke(Request $request)
     {
         $alertID = $request->get('alertid');
+        $diff = $request->get('diff');
 
-        return Datatables::of($this->alerts->getForHistoryDetailDataTable($alertID))
+        return Datatables::of($this->alerts->getForHistoryDetailDataTable($alertID, $diff))
             ->escapeColumns(['title'])
             ->addColumn('creator_name', function($alert){
                 return $alert->creator_name;
             })
             ->addColumn('type_label', function($alert){
                 return $alert->type_label;
+            })
+            ->addColumn('createdtime', function($alert){
+                return '<b style="font-size: 16px;">'.$alert->createddate.'</b><br><b>'.$alert->createdhour.'</b>';
             })
             ->make(true);
     }

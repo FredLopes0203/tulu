@@ -1,4 +1,5 @@
 <div class="pull-right mb-10 hidden-sm hidden-xs">
+    {{ link_to_route('admin.access.user.create', 'Create New User', [], ['class' => 'btn btn-info btn-sm']) }}
     {{ link_to_route('admin.access.user.index', 'Active Users', [], ['class' => 'btn btn-success btn-sm']) }}
     {{ link_to_route('admin.access.user.pending', 'Pending Users', [], ['class' => 'btn btn-primary btn-sm']) }}
     {{ link_to_route('admin.access.user.deactivated', trans('menus.backend.access.users.deactivated'), [], ['class' => 'btn btn-warning btn-sm']) }}
@@ -12,6 +13,7 @@
         </button>
 
         <ul class="dropdown-menu" role="menu">
+            <li>{{ link_to_route('admin.access.user.create', 'Create New User') }}</li>
             <li>{{ link_to_route('admin.access.user.index', 'Active Users') }}</li>
             <li class="divider"></li>
             <li>{{ link_to_route('admin.access.user.pending', 'Pending Users') }}</li>

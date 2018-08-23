@@ -1,4 +1,5 @@
 <div class="pull-right mb-10 hidden-sm hidden-xs">
+    {{ link_to_route('admin.subadmin.create', 'Create New Subadmin', [], ['class' => 'btn btn-info btn-sm']) }}
     {{ link_to_route('admin.subadmin.index', 'Active Admins', [], ['class' => 'btn btn-success btn-sm']) }}
     {{ link_to_route('admin.subadmin.pending', 'Pending Admins', [], ['class' => 'btn btn-primary btn-sm']) }}
     {{ link_to_route('admin.subadmin.deactivated', 'Deactivated Admins', [], ['class' => 'btn btn-warning btn-sm']) }}
@@ -12,6 +13,7 @@
         </button>
 
         <ul class="dropdown-menu" role="menu">
+            <li>{{ link_to_route('admin.subadmin.create', 'Create New Subadmin') }}</li>
             <li>{{ link_to_route('admin.subadmin.index', 'Active Admins') }}</li>
             <li class="divider"></li>
             <li>{{ link_to_route('admin.subadmin.index', 'Pending Admins') }}</li>

@@ -7,7 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Subadmin\Subadmin;
 use App\Repositories\Backend\Subadmin\SubadminRepository;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\File;
+use App\Repositories\Backend\Access\Role\RoleRepository;
 
 class SubadminController extends Controller
 {
@@ -16,6 +17,11 @@ class SubadminController extends Controller
     public function __construct(SubadminRepository $subadminRepository)
     {
         $this->subadmins = $subadminRepository;
+    }
+
+    public function create(Request $request)
+    {
+        return view('backend.subadmin.create');
     }
 
     public function index(Request $request)
@@ -36,6 +42,39 @@ class SubadminController extends Controller
     public function getDeleted(Request $request)
     {
         return view('backend.subadmin.deleted');
+    }
+
+    public function store(Request $request)
+    {
+        $subadminemail = $request->input('email');
+
+        $url = "";
+        $imageData = $request->input('imgData');
+
+        if($imageData != null && $imageData != "")
+        {
+            $num = $this->generateRndString();
+            $email = str_replace(' ', '', $subadminemail);
+            $fileName = $email . '_'.$num.'png';
+            $imageData = str_replace('data:image/png;base64,', '', $imageData);
+            $imageData = str_replace(' ', '+', $imageData);
+            File::put(base_path() . '/public/img/profile/'.$fileName, base64_decode($imageData));
+            $url = 'img/profile/' . $fileName;
+        }
+
+        $newAdmin = $this->subadmins->createSubadmin(
+            [
+                'data' => $request->only(
+                    'firstname',
+                    'lastname',
+                    'email',
+                    'phonenumber'
+                ),
+                'profileimg' => $url
+            ]
+        );
+
+        return redirect()->route( 'admin.subadmin.index')->withFlashSuccess('Subadmin Created Successfully.');
     }
 
     public function show(Subadmin $subadmin, Request $request)
@@ -108,150 +147,14 @@ class SubadminController extends Controller
         return redirect()->route($approve == 1 ? 'admin.subadmin.index' : 'admin.subadmin.pending')->withFlashSuccess(trans('alerts.backend.users.updated'));
     }
 
-//    public function create(Request $request)
-//    {
-//        $groupingrules = Groupingrule::where('id', '>', 0)->get();
-//        $charitygroups = Charitygroup::where('id', '>', 0)->get();
-//        $charities = Charity::where('id', '>', 0)->get();
-//        return view('backend.group.create')->with(['groupingrules' => $groupingrules, 'charitygroups' => $charitygroups, 'charities' => $charities]);
-//    }
-//
-//    public function edit($groupId, Request $request)
-//    {
-//        $group = Group::where('id', $groupId)->first();
-//
-//        $groupingrules = Groupingrule::where('id', '>', 0)->get();
-//        $charitygroups = Charitygroup::where('id', '>', 0)->get();
-//        $charities = Charity::where('id', '>', 0)->get();
-//
-//        $group['advancedvalue'] = [];
-//        if($group->rule_type == 1)
-//        {
-//            $groupingValue = $group->value;
-//            $valueItems = explode(",", $groupingValue);
-//            $group['advancedvalue'] = $valueItems;
-//        }
-//        return view('backend.group.edit')->with(['groupingrules' => $groupingrules, 'charitygroups' => $charitygroups, 'charities' => $charities, 'group' => $group]);
-//    }
+    function generateRndString($length = 6) {
+        $characters = '1234567890';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[rand(0, $charactersLength - 1)];
+        }
 
-
-
-//    public function store(Request $request)
-//    {
-//        $ruleType = $request->input('ruleType');
-//        $groupName = $request->input('name');
-//        $selectedRuleId = $request->input('selectrule');
-//
-//        $selectedcondition = 0;
-//        $selectedValue = "";
-//        if($ruleType == 2)
-//        {
-//            $selectedcondition = $request->input('selectedcondition');
-//            $selectedValue = $request->input('selectvalue');
-//        }
-//        else
-//        {
-//            $selectedValue = $request->get('selectedvalue');
-//            $count = 0;
-//            if ($request->has('selectedvalue')) {
-//                if ($request->get('selectedvalue')) {
-//                    foreach($request->get('selectedvalue') as $selectedVal)
-//                    {
-//                        if($count == 0)
-//                        {
-//                            $selectedValue = $selectedVal;
-//                        }
-//                        else
-//                        {
-//                            $selectedValue .= ",".$selectedVal;
-//                        }
-//                        $count ++;
-//                    }
-//                }
-//            }
-//        }
-//
-//        $this->groups->create(
-//            [
-//                'data' => $request->only(
-//                    'name',
-//                    'selectrule',
-//                    'ruleType'
-//                ),
-//                'selectedcondi' => $selectedcondition,
-//                'selectedvalue' => $selectedValue
-//            ]);
-//        return redirect()->route('admin.group.index')->withFlashSuccess('Group Created Successfully.');
-//    }
-//
-//    public function update(Group $group, Request $request)
-//    {
-//        $ruleType = $request->input('ruleType');
-//        $groupName = $request->input('name');
-//        $selectedRuleId = $request->input('selectrule');
-//
-//        $selectedcondition = 0;
-//        $selectedValue = "";
-//        if($ruleType == 2)
-//        {
-//            $selectedcondition = $request->input('selectedcondition');
-//            $selectedValue = $request->input('selectvalue');
-//        }
-//        else
-//        {
-//            $selectedValue = $request->get('selectedvalue');
-//            $count = 0;
-//            if ($request->has('selectedvalue')) {
-//                if ($request->get('selectedvalue')) {
-//                    foreach($request->get('selectedvalue') as $selectedVal)
-//                    {
-//                        if($count == 0)
-//                        {
-//                            $selectedValue = $selectedVal;
-//                        }
-//                        else
-//                        {
-//                            $selectedValue .= ",".$selectedVal;
-//                        }
-//                        $count ++;
-//                    }
-//                }
-//            }
-//        }
-//
-//        $this->groups->update($group,
-//            [
-//                'data' => $request->only(
-//                    'name',
-//                    'selectrule',
-//                    'ruleType'
-//                ),
-//                'selectedcondi' => $selectedcondition,
-//                'selectedvalue' => $selectedValue
-//            ]);
-//
-//        return redirect()->route('admin.group.index')->withFlashSuccess('Group Updated Successfully.');
-//    }
-//
-
-//
-//    public function active(Group $group, Request $request)
-//    {
-//        $this->groups->activate($group);
-//
-//        return redirect()->route('admin.group.index')->withFlashSuccess('Group is activated successfully.');
-//    }
-//
-//    /**
-//     * @param User              $user
-//     * @param ManageUserRequest $request
-//     *
-//     * @return mixed
-//     */
-//    public function inactive(Group $group, Request $request)
-//    {
-//        $this->groups->inactivate($group);
-//
-//        return redirect()->route('admin.group.index')->withFlashSuccess('Group is inactivated.');
-//    }
+        return $randomString;
+    }
 }

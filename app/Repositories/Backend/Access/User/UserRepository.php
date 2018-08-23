@@ -138,6 +138,59 @@ class UserRepository extends BaseRepository
         return $this->query()->where('confirmed', 0)->count();
     }
 
+    public function createUserFromSuperAdmin($input)
+    {
+        $data = $input['data'];
+        $profile = $input['profileimg'];
+        $type = $input['type'];
+
+        $exist = $this->query()->where('email', $data['email'])->first();
+
+        if($exist != null)
+        {
+            throw new GeneralException(trans('Duplicated email address!'));
+        }
+
+        $user = self::MODEL;
+        $user = new $user;
+        $user->first_name = $data['firstname'];
+        $user->last_name = $data['lastname'];
+        $user->email = $data['email'];
+        $user->phonenumber = $data['phonenumber'];
+        $user->password = bcrypt('123456');
+        $user->status = 1;
+        $user->isadmin = $type;
+        $user->organization = $data['organization'];
+        $user->isinitial = 0;
+        $user->approve = 1;
+        $user->profile_picture = $profile;
+        $user->confirmation_code = md5(uniqid(mt_rand(), true));
+        $user->confirmed = 1;
+
+        DB::transaction(function () use ($user, $data, $type) {
+            if ($user->save()) {
+                if($type == 0)
+                {
+                    $user->attachRoles(3);
+                }
+                else
+                {
+                    $user->attachRoles(2);
+                }
+
+                return true;
+            }
+
+            if($type == 0)
+            {
+                throw new GeneralException(trans('Creating user error!'));
+            }
+            else
+            {
+                throw new GeneralException(trans('Creating admin error!'));
+            }
+        });
+    }
     /**
      * @param array $input
      */
@@ -169,6 +222,45 @@ class UserRepository extends BaseRepository
             }
 
             throw new GeneralException(trans('exceptions.backend.access.users.create_error'));
+        });
+    }
+
+    public function createUser($input)
+    {
+        $curAdmin = access()->user();
+        $data = $input['data'];
+        $profile = $input['profileimg'];
+
+        $exist = $this->query()->where('email', $data['email'])->first();
+
+        if($exist != null)
+        {
+            throw new GeneralException(trans('Duplicated email address!'));
+        }
+
+        $user = self::MODEL;
+        $user = new $user;
+        $user->first_name = $data['firstname'];
+        $user->last_name = $data['lastname'];
+        $user->email = $data['email'];
+        $user->phonenumber = $data['phonenumber'];
+        $user->password = bcrypt('123456');
+        $user->status = 1;
+        $user->isadmin = 0;
+        $user->organization = $curAdmin->organization;
+        $user->isinitial = 0;
+        $user->approve = 1;
+        $user->profile_picture = $profile;
+        $user->confirmation_code = md5(uniqid(mt_rand(), true));
+        $user->confirmed = 1;
+
+        DB::transaction(function () use ($user, $data) {
+            if ($user->save()) {
+                $user->attachRoles(3);
+                event(new UserCreated($user));
+                return true;
+            }
+            throw new GeneralException(trans('Creating user error!'));
         });
     }
 

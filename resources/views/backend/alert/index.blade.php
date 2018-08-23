@@ -84,6 +84,9 @@
         });
 
         $(document).ready(function() {
+            var d = new Date();
+            var n = d.getTimezoneOffset();
+
             $(function() {
                 $('#alert-table').DataTable({
                     dom: 'lfrtip',
@@ -93,6 +96,7 @@
                     ajax: {
                         url: '{{ route("admin.alert.alerts.get") }}',
                         type: 'post',
+                        data: {diff: n},
                         error: function (xhr, err) {
                             if (err === 'parsererror')
                                 location.reload();
@@ -103,7 +107,7 @@
                         {data: 'content', name: 'content', searchable: false, sortable: false},
                         {data: 'type_label', name: 'type_label', searchable: false, sortable: false},
                         {data: 'creator_name', name: 'creator_name', searchable: false, sortable: false},
-                        {data: 'created_at', name: 'created_at', sortable:false},
+                        {data: 'createdtime', name: 'createdtime', sortable:false},
                     ]
                 });
 
@@ -127,8 +131,7 @@
                         {data: 'useremail', name: 'useremail', searchable: false, sortable: false},
                         {data: 'phonenumber', name: 'phonenumber', searchable: false, sortable: false},
                         {data: 'responsestr', name: 'responsestr', searchable: false, sortable: false},
-                        {data: 'location', name: 'location', searchable: false, sortable: false},
-                        {data: 'created_at', name: 'created_at', sortable:false},
+                        {data: 'locationbtn', name: 'locationbtn', searchable: false, sortable: false},
                     ]
                 });
 
@@ -152,8 +155,7 @@
                         {data: 'useremail', name: 'useremail', searchable: false, sortable: false},
                         {data: 'phonenumber', name: 'phonenumber', searchable: false, sortable: false},
                         {data: 'responsestr', name: 'responsestr', searchable: false, sortable: false},
-                        {data: 'location', name: 'location', searchable: false, sortable: false},
-                        {data: 'created_at', name: 'created_at', sortable:false},
+                        {data: 'locationbtn', name: 'locationbtn', searchable: false, sortable: false},
                     ]
                 });
 
@@ -177,22 +179,9 @@
                         {data: 'useremail', name: 'useremail', searchable: false, sortable: false},
                         {data: 'phonenumber', name: 'phonenumber', searchable: false, sortable: false},
                         {data: 'responsestr', name: 'responsestr', searchable: false, sortable: false},
-                        {data: 'location', name: 'location', searchable: false, sortable: false},
-                        {data: 'created_at', name: 'created_at', sortable:false},
+                        {data: 'locationbtn', name: 'locationbtn', searchable: false, sortable: false},
                     ]
                 });
-
-                $('#all-table tbody').on('click', 'tr', function () {
-                    var rowdata = alltable.row(this).data();
-                    var userid = rowdata['userid'];
-                    var domainUrl = document.location.origin;
-                    console.log(userid)
-                    if(rowdata['location'] != "Unknown")
-                    {
-                        var newurl = domainUrl + "/admin/alert/curalert/location/" + userid;
-                        $(location).attr('href',newurl);
-                    }
-                } );
             });
         });
     </script>

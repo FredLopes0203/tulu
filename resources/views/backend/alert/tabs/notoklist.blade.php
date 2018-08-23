@@ -9,7 +9,6 @@
                 <th style="width: 15%">PhoneNumber</th>
                 <th style="width: 5%">Response</th>
                 <th style="width: 15%">Location</th>
-                <th style="width: 15%">{{ trans('labels.backend.access.users.table.created') }}</th>
             </tr>
             </thead>
         </table>

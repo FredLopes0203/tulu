@@ -10,6 +10,7 @@ use App\Exceptions\GeneralException;
 use App\Repositories\BaseRepository;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Access\User\User;
+use App\Repositories\Backend\Access\Role\RoleRepository;
 /**
  * Class UserRepository.
  */
@@ -168,5 +169,43 @@ class SubadminRepository extends BaseRepository
         }
 
         throw new GeneralException('Error in approval.');
+    }
+
+    public function createSubadmin($input)
+    {
+        $curAdmin = access()->user();
+        $data = $input['data'];
+        $profile = $input['profileimg'];
+
+        $exist = $this->query()->where('email', $data['email'])->first();
+
+        if($exist != null)
+        {
+            throw new GeneralException(trans('Duplicated email address!'));
+        }
+
+        $user = self::MODEL;
+        $user = new $user;
+        $user->first_name = $data['firstname'];
+        $user->last_name = $data['lastname'];
+        $user->email = $data['email'];
+        $user->phonenumber = $data['phonenumber'];
+        $user->password = bcrypt('123456');
+        $user->status = 1;
+        $user->isadmin = 1;
+        $user->organization = $curAdmin->organization;
+        $user->isinitial = 0;
+        $user->approve = 1;
+        $user->profile_picture = $profile;
+        $user->confirmation_code = md5(uniqid(mt_rand(), true));
+        $user->confirmed = 1;
+
+        DB::transaction(function () use ($user, $data) {
+            if ($user->save()) {
+                $user->attachRoles(2);
+                return true;
+            }
+            throw new GeneralException(trans('Creating subadmin error!'));
+        });
     }
 }
