@@ -63,7 +63,7 @@ class MyuserController extends Controller
             $url = 'img/profile/' . $fileName;
         }
 
-        $newUser = $this->myusers->createUser(
+        $this->myusers->createUser(
             [
                 'data' => $request->only(
                     'firstname',
@@ -74,17 +74,6 @@ class MyuserController extends Controller
                 'profileimg' => $url
             ]
         );
-
-        $org = $newUser->organization;
-        $orgInfo = Group::where('id', $org)->first();
-        $groupName = "";
-
-        if($orgInfo != null)
-        {
-            $groupName = $orgInfo->name;
-        }
-
-        $newUser->notify(new AccountCreated($newUser->isadmin, $groupName));
 
         return redirect()->route('admin.myuser.index')->withFlashSuccess('User Created Successfully.');
     }

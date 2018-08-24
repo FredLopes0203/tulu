@@ -3,7 +3,9 @@
 namespace App\Repositories\Backend\Subadmin;
 
 
+use App\Models\Group;
 use App\Models\Subadmin\Subadmin;
+use App\Notifications\Backend\Access\AccountCreated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\GeneralException;
@@ -203,6 +205,18 @@ class SubadminRepository extends BaseRepository
         DB::transaction(function () use ($user, $data) {
             if ($user->save()) {
                 $user->attachRoles(2);
+
+                $org = $user->organization;
+                $orgInfo = Group::where('id', $org)->first();
+                $groupName = "";
+
+                if($orgInfo != null)
+                {
+                    $groupName = $orgInfo->name;
+                }
+
+                $user->notify(new AccountCreated($user->isadmin, $groupName));
+
                 return true;
             }
             throw new GeneralException(trans('Creating subadmin error!'));

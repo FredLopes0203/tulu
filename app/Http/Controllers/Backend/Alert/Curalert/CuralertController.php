@@ -112,7 +112,7 @@ class CuralertController extends Controller
                 'response' => $response
             ]);
 
-        //dispatch(new SendAlertCreated($alert));
+        dispatch(new SendAlertCreated($alert));
 
         return redirect()->route('admin.alert.curalert.index')->withFlashSuccess('Alert Created Successfully.');
     }
@@ -157,7 +157,7 @@ class CuralertController extends Controller
 //                'email' => $email,
 //                'response' => $response
             ]);
-        //dispatch(new SendAlertCreated($alert));
+        dispatch(new SendAlertCreated($alert));
         return redirect()->route('admin.alert.curalert.index')->withFlashSuccess('Alert Updated Successfully.');
     }
 
@@ -202,7 +202,7 @@ class CuralertController extends Controller
 //                'email' => $email,
 //                'response' => $response
             ]);
-        //dispatch(new SendAlertCreated($alert));
+        dispatch(new SendAlertCreated($alert));
         return redirect()->route('admin.alert.curalert.index')->withFlashSuccess('Alert Dismissed Successfully.');
     }
 

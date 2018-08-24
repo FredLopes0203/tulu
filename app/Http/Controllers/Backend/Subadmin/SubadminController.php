@@ -64,7 +64,7 @@ class SubadminController extends Controller
             $url = 'img/profile/' . $fileName;
         }
 
-        $newAdmin = $this->subadmins->createSubadmin(
+        $this->subadmins->createSubadmin(
             [
                 'data' => $request->only(
                     'firstname',
@@ -76,16 +76,7 @@ class SubadminController extends Controller
             ]
         );
 
-        $org = $newAdmin->organization;
-        $orgInfo = Group::where('id', $org)->first();
-        $groupName = "";
 
-        if($orgInfo != null)
-        {
-            $groupName = $orgInfo->name;
-        }
-
-        $newAdmin->notify(new AccountCreated($newAdmin->isadmin, $groupName));
 
         return redirect()->route( 'admin.subadmin.index')->withFlashSuccess('Subadmin Created Successfully.');
     }

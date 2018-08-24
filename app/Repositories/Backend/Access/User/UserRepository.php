@@ -3,6 +3,8 @@
 namespace App\Repositories\Backend\Access\User;
 
 use App\Models\Access\User\User;
+use App\Models\Group;
+use App\Notifications\Backend\Access\AccountCreated;
 use App\Notifications\Backend\Access\UserApproveChanged;
 use App\Notifications\Backend\Access\UserDeleteChanged;
 use App\Notifications\Backend\Access\UserStatusChanged;
@@ -178,6 +180,17 @@ class UserRepository extends BaseRepository
                     $user->attachRoles(2);
                 }
 
+                $org = $user->organization;
+                $orgInfo = Group::where('id', $org)->first();
+                $groupName = "";
+
+                if($orgInfo != null)
+                {
+                    $groupName = $orgInfo->name;
+                }
+
+                $user->notify(new AccountCreated($user->isadmin, $groupName));
+
                 return true;
             }
 
@@ -258,6 +271,18 @@ class UserRepository extends BaseRepository
             if ($user->save()) {
                 $user->attachRoles(3);
                 event(new UserCreated($user));
+
+                $org = $user->organization;
+                $orgInfo = Group::where('id', $org)->first();
+                $groupName = "";
+
+                if($orgInfo != null)
+                {
+                    $groupName = $orgInfo->name;
+                }
+
+                $user->notify(new AccountCreated($user->isadmin, $groupName));
+
                 return true;
             }
             throw new GeneralException(trans('Creating user error!'));

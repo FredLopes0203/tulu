@@ -114,7 +114,7 @@ class UserController extends Controller
             $type = 1;
         }
 
-        $newUser = $this->users->createUserFromSuperAdmin(
+        $this->users->createUserFromSuperAdmin(
             [
                 'data' => $request->only(
                     'firstname',
@@ -126,17 +126,6 @@ class UserController extends Controller
                 'type' => $type,
                 'profileimg' => $url
             ]);
-
-        $org = $newUser->organization;
-        $orgInfo = Group::where('id', $org)->first();
-        $groupName = "";
-
-        if($orgInfo != null)
-        {
-            $groupName = $orgInfo->name;
-        }
-
-        $newUser->notify(new AccountCreated($newUser->isadmin, $groupName));
 
         if($type == 0)
         {
