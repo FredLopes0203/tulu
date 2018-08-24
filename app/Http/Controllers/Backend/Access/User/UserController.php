@@ -7,6 +7,7 @@ use App\Http\Requests\Request;
 use App\Models\Access\User\User;
 use App\Http\Controllers\Controller;
 use App\Models\Group;
+use App\Notifications\Backend\Access\AccountCreated;
 use App\Repositories\Backend\Access\Role\RoleRepository;
 use App\Repositories\Backend\Access\User\UserRepository;
 use App\Http\Requests\Backend\Access\User\StoreUserRequest;
@@ -113,7 +114,7 @@ class UserController extends Controller
             $type = 1;
         }
 
-        $this->users->createUserFromSuperAdmin(
+        $newUser = $this->users->createUserFromSuperAdmin(
             [
                 'data' => $request->only(
                     'firstname',
@@ -125,6 +126,17 @@ class UserController extends Controller
                 'type' => $type,
                 'profileimg' => $url
             ]);
+
+        $org = $newUser->organization;
+        $orgInfo = Group::where('id', $org)->first();
+        $groupName = "";
+
+        if($orgInfo != null)
+        {
+            $groupName = $orgInfo->name;
+        }
+
+        $newUser->notify(new AccountCreated($newUser->isadmin, $groupName));
 
         if($type == 0)
         {

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Backend\Subadmin;
 
 use App\Exceptions\GeneralException;
 use App\Http\Controllers\Controller;
+use App\Models\Group;
 use App\Models\Subadmin\Subadmin;
+use App\Notifications\Backend\Access\AccountCreated;
 use App\Repositories\Backend\Subadmin\SubadminRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -73,6 +75,17 @@ class SubadminController extends Controller
                 'profileimg' => $url
             ]
         );
+
+        $org = $newAdmin->organization;
+        $orgInfo = Group::where('id', $org)->first();
+        $groupName = "";
+
+        if($orgInfo != null)
+        {
+            $groupName = $orgInfo->name;
+        }
+
+        $newAdmin->notify(new AccountCreated($newAdmin->isadmin, $groupName));
 
         return redirect()->route( 'admin.subadmin.index')->withFlashSuccess('Subadmin Created Successfully.');
     }

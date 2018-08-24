@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Backend\Myuser;
 use App\Exceptions\GeneralException;
 use App\Http\Controllers\Controller;
 use App\Models\Access\User\User;
+use App\Models\Group;
+use App\Notifications\Backend\Access\AccountCreated;
 use App\Repositories\Backend\Access\User\UserRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
@@ -72,6 +74,17 @@ class MyuserController extends Controller
                 'profileimg' => $url
             ]
         );
+
+        $org = $newUser->organization;
+        $orgInfo = Group::where('id', $org)->first();
+        $groupName = "";
+
+        if($orgInfo != null)
+        {
+            $groupName = $orgInfo->name;
+        }
+
+        $newUser->notify(new AccountCreated($newUser->isadmin, $groupName));
 
         return redirect()->route('admin.myuser.index')->withFlashSuccess('User Created Successfully.');
     }
